@@ -27,5 +27,11 @@
     "tailwindcss": "4.2.1",
     "typescript": "5.9.3"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "unrs-resolver",
+      "sharp"
+    ]
+  },
   "packageManager": "pnpm@11.25.0"
 }
