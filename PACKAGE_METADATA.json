@@ -1,0 +1,22 @@
+{
+  "name": "konni-deployed-source-33e23fa",
+  "type": "exact-source-snapshot",
+  "repositoryPath": "/workspace/sites/konni-night-master",
+  "baseline": {
+    "branch": "main",
+    "commit": "33e23fa0ac07d6b5eae81ee327e111660bf7d082",
+    "subject": "Add alchemy puzzle to homepage"
+  },
+  "scope": "Exact tracked source used for the deployed Konni pixel alchemy homepage",
+  "sourceDirectory": "source",
+  "changeFlags": {
+    "frontend": true,
+    "backend": false,
+    "database": false,
+    "config": true
+  },
+  "validation": {
+    "command": "pnpm build",
+    "result": "passed"
+  }
+}

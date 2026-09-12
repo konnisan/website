@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import "./assets.css";
 
 export const metadata: Metadata = {
   title: "Konni · 像素炼金工坊",
@@ -9,9 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return (
-    <html lang="zh-CN" suppressHydrationWarning>
-      <body>{children}</body>
-    </html>
-  );
+  return <html lang="zh-CN" suppressHydrationWarning><body>{children}</body></html>;
 }
