@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Konni 背景处理原型</title>
+    <style>
+      html, body, iframe { width: 100%; height: 100%; margin: 0; border: 0; overflow: hidden; }
+      iframe { display: block; }
+    </style>
+  </head>
+  <body>
+    <iframe src="/" title="Konni 背景处理预览"></iframe>
+    <script>
+      const frame = document.querySelector('iframe');
+      frame.addEventListener('load', () => {
+        const style = frame.contentDocument.createElement('style');
+        style.textContent = `
+          .scene {
+            --background-preview-art: url('/konni-workshop-day-preview.png');
+          }
+
+          .scene.night {
+            --background-preview-art: url('/konni-workshop-night-preview.png');
+          }
+
+          .scene::before {
+            inset: -10px;
+            background-image: var(--background-preview-art);
+            background-size: cover;
+            background-position: 50% 48%;
+            opacity: 1;
+            filter: saturate(.9) contrast(.97) brightness(.98);
+            transform: scale(1.012);
+          }
+
+          .scene::after {
+            background:
+              radial-gradient(ellipse at 54% 43%, rgba(255,255,255,.03) 0 28%, transparent 58%),
+              linear-gradient(90deg, rgba(15,35,42,.14) 0%, transparent 24%, transparent 72%, rgba(25,38,40,.1) 100%),
+              linear-gradient(0deg, rgba(17,31,32,.1) 0%, transparent 27%, rgba(255,255,255,.04) 100%);
+          }
+
+          .scene.night::before {
+            background-image: var(--background-preview-art);
+            background-position: 50% 45%;
+            opacity: 1;
+            filter: saturate(.88) contrast(1.03) brightness(.9);
+          }
+
+          .scene.night::after {
+            background:
+              radial-gradient(ellipse at 54% 42%, transparent 0 30%, rgba(3,8,19,.08) 62%),
+              linear-gradient(90deg, rgba(2,7,18,.24) 0%, transparent 26%, transparent 70%, rgba(2,6,16,.2) 100%),
+              linear-gradient(0deg, rgba(2,7,18,.18) 0%, transparent 32%, rgba(5,11,25,.07) 100%);
+          }
+
+          @media (min-aspect-ratio: 2 / 1) {
+            .scene::before { background-position: 50% 43%; }
+            .scene.night::before { background-position: 50% 40%; }
+          }
+
+          @media (max-aspect-ratio: 3 / 2) {
+            .scene::before { background-position: 50% 50%; }
+            .scene.night::before { background-position: 50% 47%; }
+          }
+        `;
+        frame.contentDocument.head.appendChild(style);
+      });
+    </script>
+  </body>
+</html>
