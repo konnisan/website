@@ -183,7 +183,7 @@ button { color: inherit; }
 .konni-sprite-stage.is-thinking { animation: none; }
 .konni-sprite-stage.is-sleepy { animation: avatar-sleepy-step 2.2s steps(2, end) infinite; }
 .konni-sprite-stage.is-sleep { animation: avatar-sleep-step 3.8s steps(2, end) infinite; }
-.konni-sprite-stage.is-wake { animation: avatar-wake-step .65s steps(3, end) 1; }
+.konni-sprite-stage.is-wake { animation: avatar-wake-step .65s steps(1, end) 1; }
 .konni-sprite {
   position: absolute;
   inset: 0;
@@ -238,7 +238,6 @@ button { color: inherit; }
 }
 .pixel-eye-glint-left { left: 58px; }
 .pixel-eye-glint-right { left: 76px; }
-.konni-sprite-stage.is-wake .pixel-eye-glint { top: 76px; }
 .night .konni-sprite {
   filter: hue-rotate(235deg) saturate(.72) brightness(.9) contrast(1.06);
 }

@@ -44,7 +44,7 @@ const avatarFrames: Record<AvatarPose, string> = {
   thinking: "/avatar-head/konni-head-idle.png",
   sleepy: "/avatar-head/konni-head-sleepy.png",
   sleep: "/avatar-head/konni-head-sleep.png",
-  wake: "/avatar-head/konni-head-wake.png",
+  wake: "/avatar-head/konni-head-idle.png",
 };
 
 function KonniSprite({ pose }: { pose: AvatarPose }) {

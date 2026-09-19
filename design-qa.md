@@ -269,6 +269,19 @@
 - The obsolete `/avatar-head/konni-head-thinking.png` asset was removed after runtime references were eliminated.
 - User visual decision: pending. Do not advance to H2 before explicit approval.
 
+### H1 YOLO wake as shared idle motion — waiting for approval
+
+- Date: 2026-09-19.
+- Pixel comparison proved `/avatar-head/konni-head-wake.png` is exactly the idle sprite translated upward by 2px: the shifted-idle vs wake difference bbox was `None` and differing-pixel count was `0`.
+- Wake therefore no longer swaps to a dedicated PNG. Its main frame remains `/avatar-head/konni-head-idle.png`; the shared eye layer stays attached to the same stage and moves together with the head.
+- The former wake-only eye `top: 76px` compensation rule was removed because the entire stage now performs the lift.
+- Initial Playwright sampling exposed that `steps(3,end)` still produced fractional transforms such as `0.666667px` and `-1.33333px`, which violated the 2×2 macro-pixel grid.
+- Wake timing was corrected to `steps(1,end)`. The final Playwright run sampled only `translateY(2px)`, `translateY(-2px)`, and `translateY(0)` while status remained `Awake!` and gaze remained `(-2px,-2px)`.
+- The obsolete `/avatar-head/konni-head-wake.png` asset was removed after confirming there were no runtime references.
+- The same Day run revalidated blink, local wave overlay, local thinking overlay, happy, sleepy, pillow sleep, idle restore, no horizontal overflow, and zero console/page errors. Night regression also passed.
+- Visual review of the wake Hero screenshot found no hat/hair/face identity shift; only the shared head/eye stage moves on the 2px grid.
+- User visual decision: pending. Do not advance to H2 before explicit approval.
+
 ## Comparison history
 
 1. Initial source inspection: fixed 1447 × 1087 composite canvas and off-reference component coordinates identified.
