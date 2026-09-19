@@ -15,6 +15,11 @@ This package contains the exact tracked source used for the deployed homepage.
 - `source/public/konni-ai-day.png` — day artwork
 - `source/public/alchemy-sprite-atlas.png` — alchemy materials and portal
 
+## Design planning
+
+- `design-qa.md` — current homepage visual comparison and QA baseline against lvy-neko.
+- `lvy-neko-roadmap.md` — long-term incremental roadmap for homepage completion, asset generation, subpages, and AgentDock iteration rules.
+
 ## Run locally
 
 ```bash
