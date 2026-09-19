@@ -204,6 +204,22 @@
 - Playwright console errors: none. Playwright page errors: none.
 - User visual decision: pending. Do not advance to H2 before explicit approval.
 
+### H1 YOLO macro-pixel eye fusion — waiting for approval
+
+- Date: 2026-09-19.
+- The avatar source itself is nearest-neighbour rasterized on a 2 × 2 macro-pixel grid. Gaze offsets were therefore changed from `-1 / 0 / +1px` to `-2 / 0 / +2px` so every eye movement remains aligned to the source sprite grid instead of landing on half-grid positions.
+- Eye sockets remain 6 × 8 CSS pixels, but their palette now uses colors sampled directly from the idle PNG: `#251a27` and `#352430`. The two-level eye highlight uses `#f6d39b` and `#fce9d4` in 2px blocks.
+- Night mode uses the same geometry with a dark blue socket palette and cool highlight palette; no alternate avatar image is introduced for gaze.
+- Playwright viewport: 1363 × 936 CSS pixels in Microsoft Edge.
+- Far upper-left verified the idle `src` remained `/avatar-head/konni-head-idle.png` with `--eye-x: -2px`, `--eye-y: -2px`.
+- Far lower-right verified the same idle `src` with `--eye-x: 2px`, `--eye-y: 2px`.
+- Center-above verified `--eye-x: 0px`, `--eye-y: -2px`.
+- The same Playwright run also revalidated `wave`, `happy`, `sleepy`, pillow `sleep`, `wake`, and idle restore.
+- Night-mode Playwright separately verified the same idle `src`, `2px / 2px` gaze offset, cool eye palette, zero console errors, and zero page errors.
+- Magnified nearest-neighbour comparison confirmed that hat, hair, face outline, and sprite position remain identical across gaze directions while the internal eye pixels move on the same 2px grid as the source artwork.
+- Document metrics remained `scrollWidth=1363`, `clientWidth=1363`, `scrollHeight=936`, `clientHeight=936`; no horizontal overflow was detected.
+- User visual decision: pending. Do not advance to H2 before explicit approval.
+
 ## Comparison history
 
 1. Initial source inspection: fixed 1447 × 1087 composite canvas and off-reference component coordinates identified.

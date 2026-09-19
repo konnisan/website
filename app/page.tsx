@@ -203,8 +203,8 @@ export default function Home() {
       if (avatar && box) {
         const dx = event.clientX - (box.left + box.width / 2);
         const dy = event.clientY - (box.top + box.height / 2);
-        const eyeX = dx < -36 ? -1 : dx > 36 ? 1 : 0;
-        const eyeY = dy < -30 ? -1 : dy > 30 ? 1 : 0;
+        const eyeX = dx < -36 ? -2 : dx > 36 ? 2 : 0;
+        const eyeY = dy < -30 ? -2 : dy > 30 ? 2 : 0;
         avatar.style.setProperty("--eye-x", `${eyeX}px`);
         avatar.style.setProperty("--eye-y", `${eyeY}px`);
       }

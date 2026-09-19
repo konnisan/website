@@ -201,7 +201,7 @@ button { color: inherit; }
   z-index: 2;
   width: 6px;
   height: 8px;
-  background: #352630;
+  background: linear-gradient(to bottom, #251a27 0 2px, #352430 2px 6px, #251a27 6px 8px);
   image-rendering: pixelated;
   pointer-events: none;
 }
@@ -211,8 +211,9 @@ button { color: inherit; }
   left: 2px;
   top: 2px;
   width: 2px;
-  height: 4px;
-  background: #f1c69f;
+  height: 2px;
+  background: #f6d39b;
+  box-shadow: 0 2px 0 #fce9d4;
   transform: translate(var(--eye-x), var(--eye-y));
 }
 .pixel-eye-glint-left { left: 58px; }
@@ -225,8 +226,8 @@ button { color: inherit; }
 .night .konni-sprite {
   filter: hue-rotate(235deg) saturate(.72) brightness(.9) contrast(1.06);
 }
-.night .pixel-eye-glint { background: #283047; }
-.night .pixel-eye-glint::after { background: #cbd8ff; }
+.night .pixel-eye-glint { background: linear-gradient(to bottom, #22283a 0 2px, #283047 2px 6px, #22283a 6px 8px); }
+.night .pixel-eye-glint::after { background: #cbd8ff; box-shadow: 0 2px 0 #aebfe9; }
 @keyframes avatar-idle-step {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-1px); }
