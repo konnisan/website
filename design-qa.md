@@ -282,6 +282,20 @@
 - Visual review of the wake Hero screenshot found no hat/hair/face identity shift; only the shared head/eye stage moves on the 2px grid.
 - User visual decision: pending. Do not advance to H2 before explicit approval.
 
+### H1 YOLO happy face overlay — waiting for approval
+
+- Date: 2026-09-19.
+- `happy` no longer swaps to a complete alternate head sprite. Its main frame remains `/avatar-head/konni-head-idle.png`; a new transparent `/avatar-head/konni-head-happy-face.png` supplies only the closed eyes, subtle cheeks, and tiny smiling mouth.
+- The expression overlay was drawn directly on the current avatar palette using 2 × 2 macro-pixel blocks, so the hat, hair, face outline, and head position remain identical to idle.
+- Tracking-eye layers are intentionally hidden during happy so the closed-eye expression is authoritative; normal gaze resumes when happy exits.
+- The previous whole-head jump (`-5px / +1px`) was replaced by `0 → -4 → +2 → 0px` with `steps(1,end)`, keeping all movement on the 2px grid.
+- Day Playwright verified the main `src` remains idle, tracking-eye count is `0`, exactly one happy-face overlay exists, and the sampled transforms were `0`, `-4px`, `+2px`, then reset (`none`/0).
+- Night Playwright independently verified the same idle head, zero tracking-eye layers, and the same happy-face resource under the cool palette.
+- Visual review of Day and Night Hero screenshots confirmed the `Yay!` state shows a local closed-eye smile without changing the hat/hair silhouette or card layout.
+- The obsolete `/avatar-head/konni-head-happy.png` resource was removed after runtime references were eliminated.
+- Full Day regression continued to pass blink continuity, wave overlay, thinking overlay, sleepy → pillow sleep → wake → idle, no horizontal overflow, and zero console/page errors.
+- User visual decision: pending. Do not advance to H2 before explicit approval.
+
 ## Comparison history
 
 1. Initial source inspection: fixed 1447 × 1087 composite canvas and off-reference component coordinates identified.

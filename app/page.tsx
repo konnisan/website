@@ -40,7 +40,7 @@ type AvatarPose = "idle" | "wave" | "happy" | "thinking" | "sleepy" | "sleep" | 
 const avatarFrames: Record<AvatarPose, string> = {
   idle: "/avatar-head/konni-head-idle.png",
   wave: "/avatar-head/konni-head-idle.png",
-  happy: "/avatar-head/konni-head-happy.png",
+  happy: "/avatar-head/konni-head-idle.png",
   thinking: "/avatar-head/konni-head-idle.png",
   sleepy: "/avatar-head/konni-head-sleepy.png",
   sleep: "/avatar-head/konni-head-sleep.png",
@@ -61,6 +61,10 @@ function KonniSprite({ pose }: { pose: AvatarPose }) {
       {pose === "thinking" ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img className="konni-sprite konni-thinking-hand" src="/avatar-head/konni-head-thinking-hand.png" alt="" />
+      ) : null}
+      {pose === "happy" ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img className="konni-sprite konni-happy-face" src="/avatar-head/konni-head-happy-face.png" alt="" />
       ) : null}
       {canTrackEyes ? (
         <>

@@ -300,6 +300,7 @@ Concept decision (2026-09-19):
 - YOLO Iteration 7：`wave` 从整张动作 PNG 切换改为 `idle head + shared eyes + wave-hand overlay`。手势层只保留原 wave 图左侧 `24×36px` 的必要局部并放回统一 128×128 透明画布，运行时仅手势层按 2px 整数网格位移；主头像始终保持 idle，不再让帽子、头发、脸型随挥手发生整图变化。旧 `konni-head-wave.png` 已从最终资源集中删除，Day/Night Playwright 均验证主头像不变、手势层存在且眼神继续跟随。
 - YOLO Iteration 8：`thinking` 同样取消整张动作 PNG，改为 `idle head + shared eyes + thinking-hand overlay`。托腮手势使用当前角色皮肤/轮廓色按 2×2 macro-pixel 直接绘制到统一 128×128 透明画布，运行时只在 `0 / -2px` 两个垂直位置间离散移动；主头像、帽子、头发、脸型完全保持 idle。旧 `konni-head-thinking.png` 已删除，Day/Night Playwright 均验证 thinking 保持 idle `src`、独立手势层存在、眼神继续跟随且 `Hmm...` 状态不被 pointermove 取消。
 - YOLO Iteration 9：确认 `konni-head-wake.png` 与 idle 图整体上移 2px 后逐像素完全一致（difference bbox 为 None、差异像素 0），因此 wake 不再使用独立 PNG，改为同一 idle head + shared eyes 的纯 CSS 抬头动作；旧 wake PNG 已删除。初次 Playwright 发现 `steps(3,end)` 会产生 `0.6667px / -1.3333px` 半格 transform，随后修正为 `steps(1,end)`，最终 wake 只出现 `+2px / -2px / 0px` 三个离散位置，严格保持 2×2 macro-pixel 网格。
+- YOLO Iteration 10：`happy` 取消完整动作 PNG，改为 `idle head + happy-face overlay`。局部表情层只覆盖两只眼睛、腮红和小笑嘴，全部按 2×2 macro-pixel 绘制；happy 期间关闭 tracking-eye layer，结束后恢复原鼠标视线。整颗头像跳跃也从 `-5px / +1px` 修正为离散的 `0 → -4 → +2 → 0px`，并使用 `steps(1,end)`，避免任何半格位移。旧 `konni-head-happy.png` 已删除，Day/Night Playwright 均验证主头像仍为 idle、局部 happy-face 唯一存在且闭眼状态正确。
 - 当前网页实现仍需用户基于 Playwright 结果做视觉审批，尚未标记 approved/completed。
 
 目标：不再从 `konni-ai-day.png` / `konni-ai-master.png` 裁头像。
