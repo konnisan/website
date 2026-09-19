@@ -231,6 +231,19 @@
 - Visual review of the captured blink transition confirmed that only the eye region closes; hat, hair, face outline, and head position remain stable.
 - User visual decision: pending. Do not advance to H2 before explicit approval.
 
+### H1 YOLO shared gaze across actions — waiting for approval
+
+- Date: 2026-09-19.
+- The shared 2px-grid eye layer now remains active for `idle`, `wave`, `thinking`, and `wake`. `happy`, `sleepy`, and `sleep` intentionally keep closed-eye artwork and do not render the tracking layer.
+- Sprite-anchor review found `wave` and `thinking` share the idle eye coordinates. The `wake` sprite is the same head shifted 2px upward, so its shared eye layer is correspondingly anchored at `top: 76px` rather than the normal `78px`.
+- Pointer movement no longer forcibly clears the thinking state, so a long hover can stay in `thinking` while the eye pixels continue following the pointer.
+- Day Playwright verified wave remained `/avatar-head/konni-head-wave.png` while gaze moved to `(2px,2px)` with two eye layers present; thinking remained `/avatar-head/konni-head-thinking.png` while gaze moved to `(-2px,-2px)` and status stayed `Hmm...`.
+- The same Day run verified `happy`, `sleepy`, and `sleep` each render zero tracking-eye layers, while `wake` renders two layers and followed the wake-triggering pointer at `(-2px,-2px)`.
+- Night Playwright independently verified both `wave` and `thinking` retain two tracking-eye layers and correctly follow `2px/2px` and `-2px/-2px` gaze positions under the cool palette.
+- Visual review of Day wave/thinking/wake and Night thinking screenshots found no visible eye-anchor jump or card-layout movement.
+- Full Day metrics remained `scrollWidth=1363`, `clientWidth=1363`, `scrollHeight=936`, `clientHeight=936`; Playwright console/page errors were empty.
+- User visual decision: pending. Do not advance to H2 before explicit approval.
+
 ## Comparison history
 
 1. Initial source inspection: fixed 1447 × 1087 composite canvas and off-reference component coordinates identified.

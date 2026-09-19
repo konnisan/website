@@ -48,7 +48,7 @@ const avatarFrames: Record<AvatarPose, string> = {
 };
 
 function KonniSprite({ pose }: { pose: AvatarPose }) {
-  const canTrackEyes = pose === "idle";
+  const canTrackEyes = pose === "idle" || pose === "wave" || pose === "thinking" || pose === "wake";
 
   return (
     <span className={`konni-sprite-stage is-${pose}`} aria-hidden="true">
@@ -194,7 +194,6 @@ export default function Home() {
 
     const followPointer = (event: PointerEvent) => {
       wake();
-      setAvatarThinking(false);
 
       const avatar = avatarRef.current;
       const box = avatar?.getBoundingClientRect();

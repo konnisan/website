@@ -228,6 +228,7 @@ button { color: inherit; }
 }
 .pixel-eye-glint-left { left: 58px; }
 .pixel-eye-glint-right { left: 76px; }
+.konni-sprite-stage.is-wake .pixel-eye-glint { top: 76px; }
 .night .konni-sprite {
   filter: hue-rotate(235deg) saturate(.72) brightness(.9) contrast(1.06);
 }
