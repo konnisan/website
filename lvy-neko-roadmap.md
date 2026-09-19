@@ -281,6 +281,19 @@ Soft Cyan         夜间强调
 
 ### Iteration H1 — 独立 Avatar
 
+Status: waiting_for_approval
+
+Concept decision (2026-09-19):
+
+- 用户批准“原创像素精灵 + Day/Night + 轻待机动画 + 完整动作设计”的视觉方向。
+- 用户否决了首版几何 SVG 实现，因为它与已批准的角色预览不一致。
+- 当前实现改为直接使用从已批准概念图中提取的像素精灵 PNG，优先保证角色造型一致；完整动作帧在基础造型获批后继续补齐。
+- 当前已增加 H1 动态实现：轻待机、鼠标轻微跟随、hover 问候与星光、click 开心跳跃与爱心，以及 Avatar 上方联动状态块；仍处于 waiting_for_approval。
+- 当前动作实现已升级为真实像素帧：128×128 有效 PNG 的 `idle / blink / wave / look-left / look-right / happy`；鼠标进入先挥手，随后按鼠标左右位置切换观察帧，点击切换开心表情，空闲自动眨眼。旧 96×96 截断 PNG 已替换。
+- 当前网页已切换到 `public/avatar-final/` 最终动作集：`idle / blink / wave / look-left / look-right / happy / thinking / sleep`。其中 hover 约 1.8s 进入 thinking，Night 模式静置约 8s 进入 sleep；8 张图统一 128×128、统一人物锚点，仍处于 waiting_for_approval。
+- YOLO H1 像素头像收敛：网页已切换到 `public/avatar-head/` 头部专用动作集；不再显示全身。角色固定为同一帽子/发型/配色，统一 128×128；鼠标在页面任意位置移动都会驱动左右观察帧，约 12s 全局无操作进入带枕头的 sleep，任意 pointer/keyboard 操作立即唤醒。外部星光/爱心效果已移除，动作反馈回到角色本体。
+- 当前网页实现仍需用户基于 Playwright 结果做视觉审批，尚未标记 approved/completed。
+
 目标：不再从 `konni-ai-day.png` / `konni-ai-master.png` 裁头像。
 
 修改范围：

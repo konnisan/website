@@ -20,7 +20,7 @@ import {
   Star,
   Sun,
 } from "lucide-react";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 
 const DESIGN_WIDTH = 1363;
 const DESIGN_HEIGHT = 936;
@@ -34,6 +34,31 @@ const navItems = [
 ] as const;
 
 const week = ["一", "二", "三", "四", "五", "六", "日"];
+
+type AvatarPose = "idle" | "wave" | "happy" | "look-left" | "look-right" | "thinking" | "sleep";
+
+const avatarFrames: Record<AvatarPose, string> = {
+  idle: "/avatar-head/konni-head-idle.png",
+  wave: "/avatar-head/konni-head-wave.png",
+  happy: "/avatar-head/konni-head-happy.png",
+  "look-left": "/avatar-head/konni-head-look-left.png",
+  "look-right": "/avatar-head/konni-head-look-right.png",
+  thinking: "/avatar-head/konni-head-thinking.png",
+  sleep: "/avatar-head/konni-head-sleep.png",
+};
+
+function KonniSprite({ pose }: { pose: AvatarPose }) {
+  return (
+    <span className={`konni-sprite-stage is-${pose}`} aria-hidden="true">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img className="konni-sprite konni-main-frame" src={avatarFrames[pose]} alt="" />
+      {pose === "idle" ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img className="konni-sprite konni-blink-frame" src="/avatar-head/konni-head-blink.png" alt="" />
+      ) : null}
+    </span>
+  );
+}
 
 function buildMonth(year: number, month: number) {
   const first = (new Date(year, month, 1).getDay() + 6) % 7;
@@ -76,7 +101,27 @@ export default function Home() {
   const [selectedDay, setSelectedDay] = useState(today.getDate());
   const [toast, setToast] = useState("");
   const [scale, setScale] = useState(1);
+  const [avatarHappy, setAvatarHappy] = useState(false);
+  const [avatarHover, setAvatarHover] = useState(false);
+  const [avatarWave, setAvatarWave] = useState(false);
+  const [avatarThinking, setAvatarThinking] = useState(false);
+  const [avatarSleep, setAvatarSleep] = useState(false);
+  const [avatarLook, setAvatarLook] = useState<"center" | "left" | "right">("center");
+  const avatarRef = useRef<HTMLButtonElement | null>(null);
   const days = useMemo(() => buildMonth(month.getFullYear(), month.getMonth()), [month]);
+  const avatarPose: AvatarPose = avatarHappy
+    ? "happy"
+    : avatarWave
+      ? "wave"
+      : avatarSleep
+        ? "sleep"
+        : avatarThinking
+          ? "thinking"
+          : avatarLook === "left"
+            ? "look-left"
+            : avatarLook === "right"
+              ? "look-right"
+              : "idle";
   const calendarTitle = month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth()
     ? dateLabel
     : `${month.getFullYear()}/${month.getMonth() + 1}`;
@@ -92,6 +137,54 @@ export default function Home() {
     resize();
     window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
+  }, []);
+
+  useEffect(() => {
+    if (!avatarHover || avatarWave || avatarHappy) return;
+    const timer = window.setTimeout(() => setAvatarThinking(true), 1800);
+    return () => window.clearTimeout(timer);
+  }, [avatarHappy, avatarHover, avatarWave]);
+
+  useEffect(() => {
+    let sleepTimer = 0;
+
+    const scheduleSleep = () => {
+      window.clearTimeout(sleepTimer);
+      sleepTimer = window.setTimeout(() => {
+        setAvatarWave(false);
+        setAvatarThinking(false);
+        setAvatarLook("center");
+        setAvatarSleep(true);
+      }, 12000);
+    };
+
+    const wake = () => {
+      setAvatarSleep(false);
+      scheduleSleep();
+    };
+
+    const followPointer = (event: PointerEvent) => {
+      setAvatarSleep(false);
+      setAvatarThinking(false);
+      const box = avatarRef.current?.getBoundingClientRect();
+      if (box) {
+        const dx = event.clientX - (box.left + box.width / 2);
+        setAvatarLook(dx < -26 ? "left" : dx > 26 ? "right" : "center");
+      }
+      scheduleSleep();
+    };
+
+    window.addEventListener("pointermove", followPointer, { passive: true });
+    window.addEventListener("pointerdown", wake, { passive: true });
+    window.addEventListener("keydown", wake);
+    scheduleSleep();
+
+    return () => {
+      window.clearTimeout(sleepTimer);
+      window.removeEventListener("pointermove", followPointer);
+      window.removeEventListener("pointerdown", wake);
+      window.removeEventListener("keydown", wake);
+    };
   }, []);
 
   function notify(message: string) {
@@ -137,7 +230,37 @@ export default function Home() {
         </section>
 
         <section className="card hero-panel enter-card" style={{ "--delay": "120ms" } as CSSProperties} id="top">
-          <div className="hero-avatar" role="img" aria-label="Konni 像素头像" />
+          <div className={`avatar-status${avatarHover ? " is-hover" : ""}${avatarHappy ? " is-happy" : ""}`} aria-live="polite">
+            {night ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
+            <span>{avatarHappy ? "Yay!" : avatarWave ? "Hi there!" : avatarThinking ? "Hmm..." : avatarSleep ? "Zzz..." : avatarHover ? "I see you" : night ? "Night mode" : "Konni online"}</span>
+          </div>
+          <button
+            ref={avatarRef}
+            className={`hero-avatar${avatarHappy ? " is-happy" : ""}`}
+            type="button"
+            aria-label="Konni 像素精灵，悬停会挥手并观察鼠标，点击会开心"
+            onMouseEnter={() => {
+              setAvatarSleep(false);
+              setAvatarThinking(false);
+              setAvatarHover(true);
+              setAvatarWave(true);
+              window.setTimeout(() => setAvatarWave(false), 760);
+            }}
+
+            onMouseLeave={() => {
+              setAvatarHover(false);
+              setAvatarWave(false);
+              setAvatarThinking(false);
+            }}
+            onClick={() => {
+              setAvatarSleep(false);
+              setAvatarThinking(false);
+              setAvatarHappy(true);
+              window.setTimeout(() => setAvatarHappy(false), 900);
+            }}
+          >
+            <KonniSprite pose={avatarPose} />
+          </button>
           <h1>Good {night ? "Evening" : "Afternoon"}</h1>
           <p>I&apos;m <span>Konni</span>, Nice to</p>
           <p>meet you!</p>
@@ -217,8 +340,8 @@ export default function Home() {
         ><Heart /></button>
 
         <div className="theme-toggle enter-card" style={{ "--delay": "40ms" } as CSSProperties} aria-label="主题切换">
-          <button aria-label="浅色模式" className={!night ? "active" : ""} onClick={() => setNight(false)}><Sun /></button>
-          <button aria-label="深色模式" className={night ? "active" : ""} onClick={() => setNight(true)}><Moon /></button>
+          <button aria-label="浅色模式" className={!night ? "active" : ""} onClick={() => { setAvatarSleep(false); setAvatarThinking(false); setNight(false); }}><Sun /></button>
+          <button aria-label="深色模式" className={night ? "active" : ""} onClick={() => { setAvatarSleep(false); setAvatarThinking(false); setNight(true); }}><Moon /></button>
         </div>
         <button className="settings-button enter-card" style={{ "--delay": "50ms" } as CSSProperties} aria-label="设置" onClick={() => notify("设置面板尚未开放")}><Settings /></button>
       </div>
