@@ -35,14 +35,16 @@ const navItems = [
 
 const week = ["一", "二", "三", "四", "五", "六", "日"];
 
-type AvatarPose = "idle" | "wave" | "happy" | "thinking" | "sleep";
+type AvatarPose = "idle" | "wave" | "happy" | "thinking" | "sleepy" | "sleep" | "wake";
 
 const avatarFrames: Record<AvatarPose, string> = {
   idle: "/avatar-head/konni-head-idle.png",
   wave: "/avatar-head/konni-head-wave.png",
   happy: "/avatar-head/konni-head-happy.png",
   thinking: "/avatar-head/konni-head-thinking.png",
+  sleepy: "/avatar-head/konni-head-sleepy.png",
   sleep: "/avatar-head/konni-head-sleep.png",
+  wake: "/avatar-head/konni-head-wake.png",
 };
 
 function KonniSprite({ pose }: { pose: AvatarPose }) {
@@ -109,18 +111,25 @@ export default function Home() {
   const [avatarHover, setAvatarHover] = useState(false);
   const [avatarWave, setAvatarWave] = useState(false);
   const [avatarThinking, setAvatarThinking] = useState(false);
+  const [avatarSleepy, setAvatarSleepy] = useState(false);
   const [avatarSleep, setAvatarSleep] = useState(false);
+  const [avatarWaking, setAvatarWaking] = useState(false);
   const avatarRef = useRef<HTMLButtonElement | null>(null);
+  const avatarRestRef = useRef<"awake" | "sleepy" | "sleep">("awake");
   const days = useMemo(() => buildMonth(month.getFullYear(), month.getMonth()), [month]);
   const avatarPose: AvatarPose = avatarHappy
     ? "happy"
     : avatarWave
       ? "wave"
-      : avatarSleep
-        ? "sleep"
-        : avatarThinking
-          ? "thinking"
-          : "idle";
+      : avatarWaking
+        ? "wake"
+        : avatarSleep
+          ? "sleep"
+          : avatarSleepy
+            ? "sleepy"
+            : avatarThinking
+              ? "thinking"
+              : "idle";
   const calendarTitle = month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth()
     ? dateLabel
     : `${month.getFullYear()}/${month.getMonth() + 1}`;
@@ -145,24 +154,48 @@ export default function Home() {
   }, [avatarHappy, avatarHover, avatarWave]);
 
   useEffect(() => {
+    let sleepyTimer = 0;
     let sleepTimer = 0;
+    let wakeTimer = 0;
 
-    const scheduleSleep = () => {
+    const clearRestTimers = () => {
+      window.clearTimeout(sleepyTimer);
       window.clearTimeout(sleepTimer);
-      sleepTimer = window.setTimeout(() => {
+    };
+
+    const scheduleRest = () => {
+      clearRestTimers();
+      sleepyTimer = window.setTimeout(() => {
+        avatarRestRef.current = "sleepy";
         setAvatarWave(false);
         setAvatarThinking(false);
+        setAvatarSleep(false);
+        setAvatarSleepy(true);
+      }, 8500);
+      sleepTimer = window.setTimeout(() => {
+        avatarRestRef.current = "sleep";
+        setAvatarWave(false);
+        setAvatarThinking(false);
+        setAvatarSleepy(false);
         setAvatarSleep(true);
       }, 12000);
     };
 
     const wake = () => {
+      const shouldAnimateWake = avatarRestRef.current !== "awake";
+      avatarRestRef.current = "awake";
+      setAvatarSleepy(false);
       setAvatarSleep(false);
-      scheduleSleep();
+      if (shouldAnimateWake) {
+        window.clearTimeout(wakeTimer);
+        setAvatarWaking(true);
+        wakeTimer = window.setTimeout(() => setAvatarWaking(false), 650);
+      }
+      scheduleRest();
     };
 
     const followPointer = (event: PointerEvent) => {
-      setAvatarSleep(false);
+      wake();
       setAvatarThinking(false);
 
       const avatar = avatarRef.current;
@@ -175,17 +208,16 @@ export default function Home() {
         avatar.style.setProperty("--eye-x", `${eyeX}px`);
         avatar.style.setProperty("--eye-y", `${eyeY}px`);
       }
-
-      scheduleSleep();
     };
 
     window.addEventListener("pointermove", followPointer, { passive: true });
     window.addEventListener("pointerdown", wake, { passive: true });
     window.addEventListener("keydown", wake);
-    scheduleSleep();
+    scheduleRest();
 
     return () => {
-      window.clearTimeout(sleepTimer);
+      clearRestTimers();
+      window.clearTimeout(wakeTimer);
       window.removeEventListener("pointermove", followPointer);
       window.removeEventListener("pointerdown", wake);
       window.removeEventListener("keydown", wake);
@@ -237,7 +269,7 @@ export default function Home() {
         <section className="card hero-panel enter-card" style={{ "--delay": "120ms" } as CSSProperties} id="top">
           <div className={`avatar-status${avatarHover ? " is-hover" : ""}${avatarHappy ? " is-happy" : ""}`} aria-live="polite">
             {night ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
-            <span>{avatarHappy ? "Yay!" : avatarWave ? "Hi there!" : avatarThinking ? "Hmm..." : avatarSleep ? "Zzz..." : avatarHover ? "I see you" : night ? "Night mode" : "Konni online"}</span>
+            <span>{avatarHappy ? "Yay!" : avatarWave ? "Hi there!" : avatarWaking ? "Awake!" : avatarSleep ? "Zzz..." : avatarSleepy ? "...sleepy" : avatarThinking ? "Hmm..." : avatarHover ? "I see you" : night ? "Night mode" : "Konni online"}</span>
           </div>
           <button
             ref={avatarRef}

@@ -181,7 +181,9 @@ button { color: inherit; }
 .konni-sprite-stage.is-wave { animation: avatar-wave-step .72s steps(3, end) 1; }
 .konni-sprite-stage.is-happy { animation: avatar-happy-step .58s steps(3, end) 1; }
 .konni-sprite-stage.is-thinking { animation: avatar-thinking-step 1.8s steps(2, end) infinite; }
+.konni-sprite-stage.is-sleepy { animation: avatar-sleepy-step 2.2s steps(2, end) infinite; }
 .konni-sprite-stage.is-sleep { animation: avatar-sleep-step 3.8s steps(2, end) infinite; }
+.konni-sprite-stage.is-wake { animation: avatar-wake-step .65s steps(3, end) 1; }
 .konni-sprite {
   position: absolute;
   inset: 0;
@@ -247,9 +249,18 @@ button { color: inherit; }
   0%, 100% { transform: translateY(0) rotate(0); }
   50% { transform: translateY(-1px) rotate(-.5deg); }
 }
+@keyframes avatar-sleepy-step {
+  0%, 100% { transform: translateY(1px); }
+  50% { transform: translateY(2px); }
+}
 @keyframes avatar-sleep-step {
   0%, 100% { transform: translateY(1px); }
   50% { transform: translateY(2px); }
+}
+@keyframes avatar-wake-step {
+  0% { transform: translateY(2px); }
+  45% { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
 }
 @keyframes avatar-status-pop {
   0% { transform: translateX(-50%) translateY(0) scale(.92); }

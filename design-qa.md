@@ -190,6 +190,20 @@
 - Magnified screenshot comparison verified that hat, hair, face outline, and sprite position stay identical between gaze directions; only the internal eye pixels move.
 - User visual decision: pending. Do not advance to H2 before explicit approval.
 
+### H1 YOLO staged rest/wake sequence — waiting for approval
+
+- Date: 2026-09-19.
+- Added two same-character transition frames under `public/avatar-head/`: `konni-head-sleepy.png` and `konni-head-wake.png`. They are derived directly from the existing blink/idle head sprites by whole-pixel vertical offsets only; no hat, hair, face, or palette redesign was introduced.
+- Inactivity sequence is now staged: ~8.5 s with no pointer/keyboard input → `sleepy` / `...sleepy`; ~12 s total inactivity → pillow `sleep` / `Zzz...`.
+- Any pointer or keyboard activity while sleepy/asleep switches to `wake` / `Awake!` for ~650 ms, then restores the normal idle sprite and pixel-eye tracking.
+- Playwright viewport: 1363 × 936 CSS pixels in Microsoft Edge.
+- Verified sequence in one run: `idle → wave → happy → sleepy → sleep → wake → idle`.
+- Existing gaze verification still passed in the same run: the idle `src` remained unchanged while `--eye-x / --eye-y` moved through `(-1,-1)`, `(1,1)`, and `(0,-1)`.
+- `sleepy` screenshot visibly shows closed eyes plus a 2px lower head position; `sleep` keeps the pillow; `wake` visibly raises the same head before returning to idle.
+- Document metrics remained `scrollWidth=1363`, `clientWidth=1363`, `scrollHeight=936`, `clientHeight=936`; no horizontal overflow was detected.
+- Playwright console errors: none. Playwright page errors: none.
+- User visual decision: pending. Do not advance to H2 before explicit approval.
+
 ## Comparison history
 
 1. Initial source inspection: fixed 1447 × 1087 composite canvas and off-reference component coordinates identified.
