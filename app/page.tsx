@@ -35,26 +35,30 @@ const navItems = [
 
 const week = ["一", "二", "三", "四", "五", "六", "日"];
 
-type AvatarPose = "idle" | "wave" | "happy" | "look-left" | "look-right" | "thinking" | "sleep";
+type AvatarPose = "idle" | "wave" | "happy" | "thinking" | "sleep";
 
 const avatarFrames: Record<AvatarPose, string> = {
   idle: "/avatar-head/konni-head-idle.png",
   wave: "/avatar-head/konni-head-wave.png",
   happy: "/avatar-head/konni-head-happy.png",
-  "look-left": "/avatar-head/konni-head-look-left.png",
-  "look-right": "/avatar-head/konni-head-look-right.png",
   thinking: "/avatar-head/konni-head-thinking.png",
   sleep: "/avatar-head/konni-head-sleep.png",
 };
 
 function KonniSprite({ pose }: { pose: AvatarPose }) {
+  const canTrackEyes = pose === "idle";
+
   return (
     <span className={`konni-sprite-stage is-${pose}`} aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="konni-sprite konni-main-frame" src={avatarFrames[pose]} alt="" />
-      {pose === "idle" ? (
-        /* eslint-disable-next-line @next/next/no-img-element */
-        <img className="konni-sprite konni-blink-frame" src="/avatar-head/konni-head-blink.png" alt="" />
+      {canTrackEyes ? (
+        <>
+          <span className="pixel-eye-glint pixel-eye-glint-left" />
+          <span className="pixel-eye-glint pixel-eye-glint-right" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className="konni-sprite konni-blink-frame" src="/avatar-head/konni-head-blink.png" alt="" />
+        </>
       ) : null}
     </span>
   );
@@ -106,7 +110,6 @@ export default function Home() {
   const [avatarWave, setAvatarWave] = useState(false);
   const [avatarThinking, setAvatarThinking] = useState(false);
   const [avatarSleep, setAvatarSleep] = useState(false);
-  const [avatarLook, setAvatarLook] = useState<"center" | "left" | "right">("center");
   const avatarRef = useRef<HTMLButtonElement | null>(null);
   const days = useMemo(() => buildMonth(month.getFullYear(), month.getMonth()), [month]);
   const avatarPose: AvatarPose = avatarHappy
@@ -117,11 +120,7 @@ export default function Home() {
         ? "sleep"
         : avatarThinking
           ? "thinking"
-          : avatarLook === "left"
-            ? "look-left"
-            : avatarLook === "right"
-              ? "look-right"
-              : "idle";
+          : "idle";
   const calendarTitle = month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth()
     ? dateLabel
     : `${month.getFullYear()}/${month.getMonth() + 1}`;
@@ -153,7 +152,6 @@ export default function Home() {
       sleepTimer = window.setTimeout(() => {
         setAvatarWave(false);
         setAvatarThinking(false);
-        setAvatarLook("center");
         setAvatarSleep(true);
       }, 12000);
     };
@@ -166,11 +164,18 @@ export default function Home() {
     const followPointer = (event: PointerEvent) => {
       setAvatarSleep(false);
       setAvatarThinking(false);
-      const box = avatarRef.current?.getBoundingClientRect();
-      if (box) {
+
+      const avatar = avatarRef.current;
+      const box = avatar?.getBoundingClientRect();
+      if (avatar && box) {
         const dx = event.clientX - (box.left + box.width / 2);
-        setAvatarLook(dx < -26 ? "left" : dx > 26 ? "right" : "center");
+        const dy = event.clientY - (box.top + box.height / 2);
+        const eyeX = dx < -36 ? -1 : dx > 36 ? 1 : 0;
+        const eyeY = dy < -30 ? -1 : dy > 30 ? 1 : 0;
+        avatar.style.setProperty("--eye-x", `${eyeX}px`);
+        avatar.style.setProperty("--eye-y", `${eyeY}px`);
       }
+
       scheduleSleep();
     };
 

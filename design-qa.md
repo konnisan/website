@@ -173,6 +173,23 @@
 - Playwright console errors: none. Playwright page errors: none.
 - Visual review: head-only composition is visibly more pixel-forward and removes the previous full-body silhouette. Wave still reads from the small hand near the face; the pillow is clearly visible in sleep without changing the card geometry.
 - User visual decision: pending. Do not advance to H2 before explicit approval.
+
+### H1 YOLO eye-layer tracking — waiting for approval
+
+- Date: 2026-09-19.
+- Runtime `look-left` / `look-right` full-image switching was removed. The idle sprite now remains `/avatar-head/konni-head-idle.png` while gaze changes.
+- Two 6 × 8 CSS pixel-eye layers are anchored over the existing eyes. Each contains a 2 × 4 warm highlight/pupil pixel that moves by quantized `-1 / 0 / +1px` in both X and Y based on the pointer position relative to the avatar.
+- Playwright viewport: 1363 × 936 CSS pixels in Microsoft Edge.
+- Far upper-left pointer position verified the same idle `src` plus `--eye-x: -1px`, `--eye-y: -1px`.
+- Far lower-right pointer position verified the same idle `src` plus `--eye-x: 1px`, `--eye-y: 1px`.
+- Center-above pointer position verified `--eye-x: 0px`, `--eye-y: -1px` without replacing the avatar image.
+- Existing actions still passed in the same run: hover → wave / `Hi there!`; click → happy / `Yay!`; ~12 s inactivity → pillow sleep / `Zzz...`; pointer movement → immediate wake to idle.
+- The obsolete `konni-head-look-left.png` and `konni-head-look-right.png` resources were removed from the final action set.
+- Document metrics remained `scrollWidth=1363`, `clientWidth=1363`, `scrollHeight=936`, `clientHeight=936`; no horizontal overflow was detected.
+- Playwright console errors: none. Playwright page errors: none.
+- Magnified screenshot comparison verified that hat, hair, face outline, and sprite position stay identical between gaze directions; only the internal eye pixels move.
+- User visual decision: pending. Do not advance to H2 before explicit approval.
+
 ## Comparison history
 
 1. Initial source inspection: fixed 1447 × 1087 composite canvas and off-reference component coordinates identified.
