@@ -244,6 +244,18 @@
 - Full Day metrics remained `scrollWidth=1363`, `clientWidth=1363`, `scrollHeight=936`, `clientHeight=936`; Playwright console/page errors were empty.
 - User visual decision: pending. Do not advance to H2 before explicit approval.
 
+### H1 YOLO wave hand overlay — waiting for approval
+
+- Date: 2026-09-19.
+- `wave` no longer swaps the complete head sprite. The main frame remains `/avatar-head/konni-head-idle.png` while a new transparent `/avatar-head/konni-head-wave-hand.png` overlay supplies only the local waving-hand region.
+- The overlay was derived from the previously approved wave frame by retaining only the left-side `24 × 36px` hand/outline area on a 128 × 128 transparent canvas. The old full `/avatar-head/konni-head-wave.png` asset was removed after confirming no runtime references remained.
+- The head/stage itself no longer runs the former wave translate animation. Only the hand overlay animates, using integer `2px` translation steps so the motion remains aligned to the sprite grid.
+- Day Playwright verified wave kept the idle head `src`, rendered exactly one hand overlay, retained two tracking-eye layers, and moved gaze to `(2px,2px)`. The sampled hand transforms were integer-pixel matrices (`0,-4` then `-2,-2`).
+- Night Playwright independently verified the same idle head `src`, the same hand overlay resource, two tracking-eye layers, and `(2px,2px)` gaze under the cool palette.
+- Visual review of the 1363 × 936 Hero screenshot confirmed that the hat, hair, face outline, and head position stay fixed while only the left-hand gesture changes; no visible seam or card-layout shift was observed.
+- The same Day run revalidated blink continuity, thinking gaze, happy closed eyes, staged sleepy/sleep/wake, no horizontal overflow, and zero console/page errors.
+- User visual decision: pending. Do not advance to H2 before explicit approval.
+
 ## Comparison history
 
 1. Initial source inspection: fixed 1447 × 1087 composite canvas and off-reference component coordinates identified.
