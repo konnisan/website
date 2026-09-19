@@ -180,7 +180,7 @@ button { color: inherit; }
 .konni-sprite-stage.is-idle { animation: avatar-idle-step 3.4s steps(2, end) infinite; }
 .konni-sprite-stage.is-wave { animation: none; }
 .konni-sprite-stage.is-happy { animation: avatar-happy-step .58s steps(3, end) 1; }
-.konni-sprite-stage.is-thinking { animation: avatar-thinking-step 1.8s steps(2, end) infinite; }
+.konni-sprite-stage.is-thinking { animation: none; }
 .konni-sprite-stage.is-sleepy { animation: avatar-sleepy-step 2.2s steps(2, end) infinite; }
 .konni-sprite-stage.is-sleep { animation: avatar-sleep-step 3.8s steps(2, end) infinite; }
 .konni-sprite-stage.is-wake { animation: avatar-wake-step .65s steps(3, end) 1; }
@@ -199,6 +199,11 @@ button { color: inherit; }
   z-index: 3;
   pointer-events: none;
   animation: avatar-wave-hand-step .72s steps(1, end) 1;
+}
+.konni-thinking-hand {
+  z-index: 3;
+  pointer-events: none;
+  animation: avatar-thinking-hand-step 1.8s steps(1, end) infinite;
 }
 .pixel-eye-glint {
   position: absolute;
@@ -273,9 +278,9 @@ button { color: inherit; }
   42% { transform: translateY(-5px); }
   72% { transform: translateY(1px); }
 }
-@keyframes avatar-thinking-step {
-  0%, 100% { transform: translateY(0) rotate(0); }
-  50% { transform: translateY(-1px) rotate(-.5deg); }
+@keyframes avatar-thinking-hand-step {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
 }
 @keyframes avatar-sleepy-step {
   0%, 100% { transform: translateY(1px); }

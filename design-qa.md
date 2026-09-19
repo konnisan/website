@@ -256,6 +256,19 @@
 - The same Day run revalidated blink continuity, thinking gaze, happy closed eyes, staged sleepy/sleep/wake, no horizontal overflow, and zero console/page errors.
 - User visual decision: pending. Do not advance to H2 before explicit approval.
 
+### H1 YOLO thinking hand overlay — waiting for approval
+
+- Date: 2026-09-19.
+- `thinking` no longer swaps in a complete alternate head sprite. The main frame remains `/avatar-head/konni-head-idle.png`; a new transparent `/avatar-head/konni-head-thinking-hand.png` supplies only the local hand-to-cheek gesture.
+- The thinking hand was redrawn directly on the current avatar palette using 2 × 2 macro-pixel blocks (`#251a27`, `#eaae94`, `#f6d39b`, `#fce9d4`) rather than preserving regenerated hat/hair/face differences from the former thinking frame.
+- The stage no longer rotates or translates the whole head during thinking. Only the hand overlay animates, switching discretely between `translateY(0)` and `translateY(-2px)`.
+- Day Playwright verified thinking keeps the idle head `src`, status `Hmm...`, exactly two tracking-eye layers, and exactly one thinking-hand overlay. Continuous sampling captured both `matrix(..., 0, 0)` and `matrix(..., 0, -2)` hand states.
+- Pointer movement during thinking kept the state active while gaze changed to `(-2px,-2px)`; the main head still remained idle.
+- Night Playwright independently verified the same idle head, the same thinking-hand resource, two tracking-eye layers, and `(-2px,-2px)` gaze under the cool palette.
+- Visual review of Day and Night Hero screenshots found the hat, hair, face outline, and head position unchanged during thinking, with no obvious hand-overlay seam or card movement.
+- The obsolete `/avatar-head/konni-head-thinking.png` asset was removed after runtime references were eliminated.
+- User visual decision: pending. Do not advance to H2 before explicit approval.
+
 ## Comparison history
 
 1. Initial source inspection: fixed 1447 × 1087 composite canvas and off-reference component coordinates identified.

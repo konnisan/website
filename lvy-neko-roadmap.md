@@ -298,6 +298,7 @@ Concept decision (2026-09-19):
 - YOLO Iteration 5：自动眨眼从“完整闭眼 PNG 覆盖”改为眼睛局部 CSS 像素眼皮序列，按 `open → half → closed → half → open` 播放，并继续遵守 2px macro-pixel 网格。blink 全程不切换头像 `src`、不修改 `--eye-x / --eye-y`，因此睁眼后直接恢复眨眼前的鼠标视线；旧 `konni-head-blink.png` 已从最终资源集中删除。Day/Night 均完成自然 blink 连续性验证。
 - YOLO Iteration 6：共享像素眼睛层从 idle 扩展到 `wave / thinking / wake`。其中 wave/thinking 复用 idle 锚点，wake 因头像整体上移 2px 将眼睛层同步上移到 `top: 76px`；`happy / sleepy / sleep` 保持闭眼，不叠加跟随层。全局 pointermove 不再强制取消 thinking，因此思考状态也可持续追踪鼠标。Day/Night 均完成 wave 与 thinking 的真实眼神跟随验证，wake 也完成唤醒时追踪验证。
 - YOLO Iteration 7：`wave` 从整张动作 PNG 切换改为 `idle head + shared eyes + wave-hand overlay`。手势层只保留原 wave 图左侧 `24×36px` 的必要局部并放回统一 128×128 透明画布，运行时仅手势层按 2px 整数网格位移；主头像始终保持 idle，不再让帽子、头发、脸型随挥手发生整图变化。旧 `konni-head-wave.png` 已从最终资源集中删除，Day/Night Playwright 均验证主头像不变、手势层存在且眼神继续跟随。
+- YOLO Iteration 8：`thinking` 同样取消整张动作 PNG，改为 `idle head + shared eyes + thinking-hand overlay`。托腮手势使用当前角色皮肤/轮廓色按 2×2 macro-pixel 直接绘制到统一 128×128 透明画布，运行时只在 `0 / -2px` 两个垂直位置间离散移动；主头像、帽子、头发、脸型完全保持 idle。旧 `konni-head-thinking.png` 已删除，Day/Night Playwright 均验证 thinking 保持 idle `src`、独立手势层存在、眼神继续跟随且 `Hmm...` 状态不被 pointermove 取消。
 - 当前网页实现仍需用户基于 Playwright 结果做视觉审批，尚未标记 approved/completed。
 
 目标：不再从 `konni-ai-day.png` / `konni-ai-master.png` 裁头像。
