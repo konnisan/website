@@ -205,11 +205,21 @@ button { color: inherit; }
   image-rendering: pixelated;
   pointer-events: none;
 }
+.pixel-eye-glint::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  animation: avatar-pixel-blink 6.2s steps(1, end) infinite;
+}
 .pixel-eye-glint::after {
   content: "";
   position: absolute;
   left: 2px;
   top: 2px;
+  z-index: 1;
   width: 2px;
   height: 2px;
   background: #f6d39b;
@@ -218,23 +228,33 @@ button { color: inherit; }
 }
 .pixel-eye-glint-left { left: 58px; }
 .pixel-eye-glint-right { left: 76px; }
-.konni-blink-frame {
-  z-index: 3;
-  opacity: 0;
-  animation: avatar-blink-frame 6.2s steps(1, end) infinite;
-}
 .night .konni-sprite {
   filter: hue-rotate(235deg) saturate(.72) brightness(.9) contrast(1.06);
 }
 .night .pixel-eye-glint { background: linear-gradient(to bottom, #22283a 0 2px, #283047 2px 6px, #22283a 6px 8px); }
 .night .pixel-eye-glint::after { background: #cbd8ff; box-shadow: 0 2px 0 #aebfe9; }
+.night .pixel-eye-glint::before { --blink-skin: #8d8cac; --blink-line: #283047; }
 @keyframes avatar-idle-step {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-1px); }
 }
-@keyframes avatar-blink-frame {
-  0%, 45%, 49%, 100% { opacity: 0; }
-  46%, 48% { opacity: 1; }
+@keyframes avatar-pixel-blink {
+  0%, 44%, 50%, 100% {
+    opacity: 0;
+    background: transparent;
+  }
+  45%, 49% {
+    opacity: 1;
+    background: linear-gradient(to bottom, var(--blink-skin, #fadabc) 0 2px, transparent 2px 8px);
+  }
+  46%, 48% {
+    opacity: 1;
+    background: linear-gradient(to bottom, var(--blink-skin, #fadabc) 0 2px, var(--blink-line, #352430) 2px 4px, var(--blink-skin, #fadabc) 4px 8px);
+  }
+  47% {
+    opacity: 1;
+    background: linear-gradient(to bottom, var(--blink-skin, #fadabc) 0 3px, var(--blink-line, #352430) 3px 5px, var(--blink-skin, #fadabc) 5px 8px);
+  }
 }
 @keyframes avatar-wave-step {
   0%, 100% { transform: translateY(0); }

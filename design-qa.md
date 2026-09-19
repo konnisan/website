@@ -198,7 +198,7 @@
 - Any pointer or keyboard activity while sleepy/asleep switches to `wake` / `Awake!` for ~650 ms, then restores the normal idle sprite and pixel-eye tracking.
 - Playwright viewport: 1363 × 936 CSS pixels in Microsoft Edge.
 - Verified sequence in one run: `idle → wave → happy → sleepy → sleep → wake → idle`.
-- Existing gaze verification still passed in the same run: the idle `src` remained unchanged while `--eye-x / --eye-y` moved through `(-1,-1)`, `(1,1)`, and `(0,-1)`.
+- Existing gaze verification still passed in the same run; subsequent Iteration 4 refined those offsets to the current 2px macro-pixel grid (`-2 / 0 / +2px`).
 - `sleepy` screenshot visibly shows closed eyes plus a 2px lower head position; `sleep` keeps the pillow; `wake` visibly raises the same head before returning to idle.
 - Document metrics remained `scrollWidth=1363`, `clientWidth=1363`, `scrollHeight=936`, `clientHeight=936`; no horizontal overflow was detected.
 - Playwright console errors: none. Playwright page errors: none.
@@ -218,6 +218,17 @@
 - Night-mode Playwright separately verified the same idle `src`, `2px / 2px` gaze offset, cool eye palette, zero console errors, and zero page errors.
 - Magnified nearest-neighbour comparison confirmed that hat, hair, face outline, and sprite position remain identical across gaze directions while the internal eye pixels move on the same 2px grid as the source artwork.
 - Document metrics remained `scrollWidth=1363`, `clientWidth=1363`, `scrollHeight=936`, `clientHeight=936`; no horizontal overflow was detected.
+- User visual decision: pending. Do not advance to H2 before explicit approval.
+
+### H1 YOLO blink/gaze continuity — waiting for approval
+
+- Date: 2026-09-19.
+- Automatic blink no longer swaps in `konni-head-blink.png`. The idle head image remains unchanged while each eye plays an eye-local 2px-grid eyelid sequence: `open → half → closed → half → open`.
+- The obsolete `public/avatar-head/konni-head-blink.png` runtime asset was removed after confirming no code references remained.
+- Day-mode Playwright held gaze at `--eye-x: 2px`, `--eye-y: 2px`, observed two distinct non-open eyelid backgrounds, confirmed the eyelid reopened, and confirmed both the idle `src` and gaze variables were unchanged before/after blink.
+- Night-mode Playwright independently observed three blink backgrounds, kept the same idle `src`, retained `2px / 2px` gaze after reopening, and reported no console/page errors.
+- The same full Day run revalidated `wave`, `happy`, `sleepy`, pillow `sleep`, `wake`, idle restore, and 1363 × 936 no-overflow metrics.
+- Visual review of the captured blink transition confirmed that only the eye region closes; hat, hair, face outline, and head position remain stable.
 - User visual decision: pending. Do not advance to H2 before explicit approval.
 
 ## Comparison history

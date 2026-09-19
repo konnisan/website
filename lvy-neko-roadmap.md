@@ -295,6 +295,7 @@ Concept decision (2026-09-19):
 - YOLO Iteration 2：取消运行时 `look-left/look-right` 整图切换，删除对应两张旧资源；idle 头像保持同一 PNG，仅叠加两只 6×8 像素眼睛，内部 2×4 眼神像素按全局鼠标位置量化移动 `-1/0/+1px`（横向与纵向）。这样鼠标跟随只改变眼睛，不再引起帽子、头发、脸型细节跳变；wave / happy / thinking / pillow sleep 保留独立动作图。
 - YOLO Iteration 3：无操作状态改为连续动作链。约 8.5s 无输入先进入 `sleepy`（闭眼并轻微低头），约 12s 进入带枕头 `sleep`；睡眠/困倦时任意 pointer 或 keyboard 输入先播放约 650ms 的 `wake` 抬头帧，再恢复 `idle` 和眼神跟随。`sleepy` / `wake` 均由当前同一头像帧直接做像素位移派生，不重新生成角色外观。
 - YOLO Iteration 4：眼睛跟随层改为严格服从头像本身的 2×2 macro-pixel 网格。眼神位移由 `-1/0/+1px` 调整为 `-2/0/+2px`，避免半格落点；眼眶使用从 idle PNG 实际采样的 `#251a27 / #352430` 深棕像素，眼神高光使用 `#f6d39b / #fce9d4` 两级 2px 像素。Night 同步换为冷蓝深色眼眶与高光，仍保持同一 idle `src`，不切整张头像。
+- YOLO Iteration 5：自动眨眼从“完整闭眼 PNG 覆盖”改为眼睛局部 CSS 像素眼皮序列，按 `open → half → closed → half → open` 播放，并继续遵守 2px macro-pixel 网格。blink 全程不切换头像 `src`、不修改 `--eye-x / --eye-y`，因此睁眼后直接恢复眨眼前的鼠标视线；旧 `konni-head-blink.png` 已从最终资源集中删除。Day/Night 均完成自然 blink 连续性验证。
 - 当前网页实现仍需用户基于 Playwright 结果做视觉审批，尚未标记 approved/completed。
 
 目标：不再从 `konni-ai-day.png` / `konni-ai-master.png` 裁头像。

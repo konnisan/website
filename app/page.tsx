@@ -58,8 +58,6 @@ function KonniSprite({ pose }: { pose: AvatarPose }) {
         <>
           <span className="pixel-eye-glint pixel-eye-glint-left" />
           <span className="pixel-eye-glint pixel-eye-glint-right" />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className="konni-sprite konni-blink-frame" src="/avatar-head/konni-head-blink.png" alt="" />
         </>
       ) : null}
     </span>
