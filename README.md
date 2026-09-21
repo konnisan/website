@@ -1,38 +1,65 @@
-# Konni Pixel Alchemy — deployed source snapshot
+# Konni Website
 
-This package contains the exact tracked source used for the deployed homepage.
+当前仓库只保留首页开发所需源码、运行/构建配置，以及正在验证的白发水手帽角色素材。
 
-- Branch: `main`
-- Commit: `33e23fa0ac07d6b5eae81ee327e111660bf7d082`
-- Commit subject: `Add alchemy puzzle to homepage`
-- Source directory: `source/`
+## 关键目录
 
-## Important files
+```text
+app/
+  page.tsx                # 当前首页
+  globals.css             # 首页样式
 
-- `source/app/page.tsx` — page structure and interactions
-- `source/app/globals.css` — layout, day/night theme, animation and alchemy game styles
-- `source/public/konni-ai-master.png` — night artwork
-- `source/public/konni-ai-day.png` — day artwork
-- `source/public/alchemy-sprite-atlas.png` — alchemy materials and portal
+public/
+  avatar-head/            # 首页暂用 idle / sleep；白发角色接入后再移除
+  avatar-white-sailor/
+    reference.png         # 白发水手帽角色中心参考图
+    layered/
+      face-back.png       # 固定底层
+      iris-left.png       # 左虹膜/瞳孔，唯一运动层之一
+      iris-right.png      # 右虹膜/瞳孔，唯一运动层之一
+      face-front.png      # 固定眼皮/睫毛前景遮挡
+  avatar-puppet-lab.html  # 独立眼球跟随实验页
 
-## Design planning
+tests/
+  avatar-puppet.playwright.mjs
 
-- `design-qa.md` — current homepage visual comparison and QA baseline against lvy-neko.
-- `lvy-neko-roadmap.md` — long-term incremental roadmap for homepage completion, asset generation, subpages, and AgentDock iteration rules.
+docs/superpowers/specs/
+  2026-09-20-konni-eye-tracking-design.md
+```
 
-## Run locally
+`outputs/` 仅用于本地 Playwright 截图和调试产物，已被 Git 忽略，不进入仓库。
+
+## 当前眼球方案
+
+人物本体不移动。运行时只有左右虹膜根据鼠标位置移动，图层顺序固定为：
+
+```text
+face-back
+→ iris-left / iris-right
+→ face-front
+```
+
+眼球移动到眼眶边缘时由 `face-front` 自然遮挡，不使用矩形眼眶裁剪，也不切换整张人脸方向图。
+
+## 本地运行
 
 ```bash
-cd source
 pnpm install
 pnpm dev
 ```
 
-## Production build
+## 白发角色 Playwright 验证
 
 ```bash
-cd source
-pnpm build
+node tests/avatar-puppet.playwright.mjs
 ```
 
-This is the real React/Vinext source project, not a rewritten standalone HTML file. The final HTML and JavaScript bundles are produced by the build command.
+测试会检查中心/八方向/圆周轨迹、固定人物图层、PNG 尺寸、图层顺序以及浏览器错误，并把截图写入 `outputs/avatar-puppet/`。
+
+## 常用检查
+
+```bash
+pnpm lint
+pnpm exec tsc --noEmit
+pnpm build
+```

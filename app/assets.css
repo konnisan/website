@@ -1,8 +1,0 @@
-:root {
-  --master: url("/konni-ai-master.webp");
-  --alchemy: url("/alchemy-sprite-atlas.webp");
-}
-
-.scene.day {
-  --master: url("/konni-ai-day.webp");
-}

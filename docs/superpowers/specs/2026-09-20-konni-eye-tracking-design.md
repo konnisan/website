@@ -1,233 +1,176 @@
-# Konni 眼球随鼠标交互设计
+# Konni 分层眼球随鼠标交互设计
 
 日期：2026-09-20
-状态：已基于深度研究与当前仓库现状收敛，等待用户对本文件最终确认后进入实施计划
+状态：当前实施基线（已批准）
 
-## 1. 目标
+## 1. 当前唯一实施方向
 
-在不移动人物脸、帽子、头发和头部主体的前提下，让人物眼睛根据鼠标方向自然变化。
+采用 Wallpaper Engine / Puppet Warp 类似的**动画分层思路**，而不是在完成的人像 PNG 上再贴一个矩形眼睛组件。
 
-核心验收原则：
+目标只有一个：人物头部、脸、帽子、头发完全静止；左右虹膜/瞳孔根据鼠标相对位置变化，并在移动到眼眶边界时自然被上层眼皮、睫毛、头发和脸部遮挡，只露出仍位于眼睛开口中的部分。
 
-1. 人物主体完全固定，不通过整张头像切换制造“看向左/右”的效果。
-2. 变化只发生在眼球/虹膜/瞳孔区域。
-3. 眼球到达眼眶边界时，只显示仍位于眼眶开口内的部分，不允许出现矩形贴纸感或越界。
-4. 像素风必须保持清晰，不出现亚像素模糊。
-5. 先在独立实验页验证，再接入首页；未经视觉确认不得直接替换正式 Hero 头像。
-6. Playwright 同时验证数学状态和截图结果。
-
-## 2. 当前仓库诊断
-
-当前仓库已经有两套相关实现：
-
-- 首页 `app/page.tsx`：固定 `konni-head-idle.png`，额外叠加两只 CSS 眼睛，目前按 8 个方向把眼神量化为 `-2/0/+2px`。
-- `public/avatar-eye-follow-lab.html`：固定头像 + 两个矩形 `eye-window` + 一张复用的 iris 图，连续跟随鼠标。
-
-目前连续实验视觉效果不自然的主要原因并非方向计算，而是：
-
-- 眼眶开口使用近似矩形，而不是贴合真实眼皮边缘的 mask。
-- iris 素材与原头像眼睛并非同一套美术结构，容易出现“贴纸滑动”。
-- 当前头像 128×128，眼睛实际开口非常小，原运行时又遵循 2×2 macro-pixel 网格；在这种尺寸下直接制作 17 个肉眼明显不同的方向并不现实。
-- 当前 `app/page.tsx` 还有既存 TypeScript 错误：`setAvatarThinking` 已无定义。该错误与眼球实验无关，本轮原型不应顺手重构首页，以免覆盖现有未提交工作。
-
-另外，当前仓库中的正式头像仍是棕发宽檐帽角色，而本对话后续确认的视觉目标是“白发 + 水手帽 + 无额外星星/魔法书装饰”。因此本轮技术原型可以暂时复用现有头像验证交互，但正式首页接入前必须换成最终确认的人物基础图，不能把当前棕发角色当作最终美术版本。
-
-## 3. 技术路线选择
-
-深度研究比较了三类路线：
-
-### 路线 A：单张虹膜连续移动 + mask
-
-优点：真正连续，最符合“一个眼球图片跟着鼠标转动”的直觉。
-
-缺点：要求素材从一开始就是动画级分层：脸底/眼白、虹膜、前景眼皮与睫毛必须分离。当前素材并未完全满足，因此直接在现有成图上继续调 `translate` 收益较低。
-
-### 路线 B：eye-only 离散方向 sprite
-
-优点：每个方向都可以人工控制，不会穿帮，非常适合像素角色；人物主体始终只使用一张固定图。
-
-缺点：需要额外眼睛帧。方向数越多，美术工作量越高。
-
-### 路线 C：Live2D/Spine/mesh rig
-
-优点：扩展性最强。
-
-缺点：对当前只有一个小头像的需求明显过重，不采用。
-
-## 4. 本项目实施决策
-
-采用“B 作为正式路线，A 保留为对照实验”的方式。
-
-### 第一阶段：9 状态 eye-only 技术原型
-
-先做：
-
-- center
-- N / NE / E / SE / S / SW / W / NW
-
-总计 9 个眼睛状态。
-
-原因：当前眼睛开口非常小，9 状态足以验证以下关键问题：
-
-- 固定脸是否真正不动；
-- 眼球是否能在眼眶内自然朝向鼠标；
-- mask/遮挡是否可信；
-- 切换时是否有明显跳变；
-- 当前角色分辨率是否有必要升级到 17 状态。
-
-只有 9 状态视觉确认通过后，才进入 17 状态生产版。17 状态不是第一步直接堆素材。
-
-### 第二阶段：17 状态正式眼睛素材
-
-如果 9 状态已经自然，但角度跳变仍肉眼可见，则升级为：
-
-- center 1 帧；
-- 外圈每 22.5° 一个方向，共 16 帧；
-- 合计 17 帧。
-
-这一步应在最终确认的“白发 + 水手帽”人物基础图上制作，而不是在当前棕发临时头像上投入完整美术成本。
-
-## 5. 图层结构
-
-最终角色必须遵守：
+当前结构：
 
 ```text
-face_back / eye white / skin base        固定
-                ↓
-eye-only sprite / iris / pupil           唯一变化
-                ↓
-face_front / eyelid / eyelash / hair     固定前景遮挡
+face-back / eye-white              固定底层
+        ↓
+iris-left + iris-right             唯一移动层
+        ↓
+face-front / eyelid / eyelash      固定前景遮挡
 ```
 
-对于第一阶段原型，可以先不把整张头像永久拆成三张生产素材，但实验页必须模拟同样的遮挡关系：
+这份结构是当前 canonical implementation。后续 Agent/开发不得再把旧 CSS 眼睛、矩形 `eye-window` 或整脸九方向切换当作现行方案。
 
-- 原人物主体保持同一张 PNG；
-- 眼睛区域使用独立 mask；
-- eye-only 层仅在 mask 内可见；
-- 不使用白色矩形眼眶覆盖原脸；
-- 不移动人物主体。
+## 2. 已退役方案
 
-## 6. 输入与方向算法
+以下方案已明确退役：
 
-鼠标只负责生成 gaze target，不直接修改图片坐标。
+1. 整张头像 `look-left / look-right / 9方向` 切换。
+2. 首页在完整头像上额外覆盖 `.pixel-eye-glint`，再以 `--eye-x / --eye-y` 移动内部像素。
+3. `avatar-eye-follow-lab.html` 中矩形 `eye-window + overflow:hidden + 整张 iris PNG translate`。
+4. `avatar-lab.html` 中 `-2/0/+2px` 八方向 CSS 眼神系统。
+5. 把 9/17 方向 eye-only sprite 当作默认正式路线。
 
-基本流程：
+第 5 项只保留为 fallback：只有最终分层人物素材无法在连续移动中达到自然效果时才重新评估，不作为当前路线并行维护。
+
+旧实验页、旧测试和旧 eye-follow 预览应删除，避免未来 Agent 根据历史文件继续错误路线。
+
+## 3. 为什么采用分层 Puppet 路线
+
+动态壁纸/2D rig 的自然感来自素材结构，而不是某个特殊 API。网页无需复制 Wallpaper Engine 本身，只复制它的角色制作原则：
+
+- 眼球从一开始就是独立运动部件；
+- 眼球位于脸部前景下方；
+- 眼皮/睫毛负责真实遮挡；
+- 鼠标只生成 gaze target；
+- 角色主体不参与 gaze transform。
+
+因此网页实现可以用普通 DOM 图层 + `requestAnimationFrame`，不必引入 Live2D/Spine，也不必依赖 Canvas 才能实现。
+
+## 4. 当前原型文件
+
+```text
+public/avatar-puppet-lab.html
+public/avatar-white-sailor/
+  reference.png
+  layered/
+    face-back.png
+    face-front.png
+    iris-left.png
+    iris-right.png
+
+tests/avatar-puppet.playwright.mjs
+outputs/avatar-puppet/        # 本地测试产物，Git 忽略
+```
+
+棕发宽檐帽技术占位角色已经退役并从当前工作树清除。当前唯一 Puppet 原型直接使用已确认的白发/银发水手帽角色：深色水手帽、精灵耳、深色高领衣服、灰紫色眼睛。非眼睛区域不随 gaze 变化。
+
+四张运行时 PNG 都是同一个 `256×256` 坐标系的透明分层素材，因此无需再手工猜测左右眼绝对坐标。`reference.png` 是四层在中心眼位重新合成后的基准图，用于确认人物身份与图层注册没有漂移。
+
+## 5. 输入算法
+
+鼠标输入连续：
 
 ```text
 pointermove
-  → 相对头像视线向量
+  → pointer - avatar center
   → dead zone
-  → atan2
-  → 8 个方向扇区或 center
-  → hysteresis
-  → 选择 eye-only frame
+  → normalized gaze vector
+  → X/Y 最大活动半径
+  → ellipse constraint
+  → target gaze
 ```
 
-要求：
-
-- 中心 dead zone 避免鼠标靠近人物时眼睛高频抖动；
-- 方向边界加入少量 hysteresis，避免 E/NE 等临界角反复闪烁；
-- 眼睛帧切换不做 alpha cross-fade，避免像素双影；
-- `image-rendering: pixelated`；
-- 所有位移与素材锚点保持整数像素。
-
-## 7. 第一阶段文件边界
-
-本轮先新增独立实验实现，不直接改首页：
+渲染：
 
 ```text
-public/avatar-eye-sprite-lab.html
-public/avatar-eye/
-  eyes-9.png            # eye-only atlas 或 9 帧等价资源
-tests/avatar-eye-sprite.playwright.mjs
-preview/
-  eye-sprite-center.png
-  eye-sprite-north.png
-  eye-sprite-east.png
-  eye-sprite-south.png
-  eye-sprite-west.png
-  eye-sprite-circle-end.png
+target gaze
+  → requestAnimationFrame smoothing
+  → Math.round(source-pixel offset)
+  → left/right iris transform
 ```
 
-现有 `public/avatar-eye-follow-lab.html` 保留为连续方案 A 的基线对照，不删除。
+当前白发水手帽角色使用 `256×256` 分层 PNG。虹膜的运行时偏移最终取整数源像素，避免像素画在浏览器中产生亚像素模糊。
 
-首页 `app/page.tsx` 和 `app/globals.css` 在第一阶段不接入新眼睛系统，避免破坏当前未提交改动。
+当前实验参数：
 
-## 8. Playwright 验证
+```text
+MAX_X = 10 source px
+MAX_Y = 6 source px
+DEAD_ZONE = 28 CSS px
+SATURATION_X = 330 CSS px
+SATURATION_Y = 260 CSS px
+FOLLOW = 0.20
+```
 
-自动验证至少包括：
+这些参数属于独立 Puppet Lab，正式接入首页前仍需根据人工视觉检查调整眼球极限位置。
 
-1. base 头像 `src`、尺寸、transform 在所有方向中不变；
-2. center 时使用 center eye frame；
-3. 八方向鼠标位置映射到正确方向；
-4. 方向边界不会快速抖动；
-5. 圆周鼠标轨迹依次经过全部方向；
-6. 极远鼠标位置不会产生异常状态；
-7. eye-only 层始终位于眼眶 mask 内；
+## 6. 图层与遮挡约束
+
+必须保证：
+
+- `face-back` transform 永远不变；
+- `face-front` transform 永远不变；
+- 两个 iris 才允许发生 gaze transform；
+- 不在 CSS 中额外创建白色矩形眼眶；
+- 不使用矩形 `overflow:hidden` 模拟眼皮；
+- 眼睛边界由真实人物前景透明图自然遮挡；
+- iris 最大运动范围不得超出可被前景可靠覆盖的区域。
+
+## 7. Playwright 验证
+
+自动测试必须验证：
+
+1. center gaze 为 `(0, 0)`；
+2. N / NE / E / SE / S / SW / W / NW 方向符号正确；
+3. X/Y 不超过设计最大范围；
+4. 鼠标按圆周移动时产生多组连续 gaze 状态；
+5. `face-back` 的 src、transform、位置尺寸始终不变；
+6. `face-front` 的 src、transform、位置尺寸始终不变；
+7. 两个 iris 使用同一 gaze vector；
 8. 无 console error / page error；
-9. 截图供人工视觉审批。
+9. 生成方向截图供人工检查眼皮遮挡。
 
-开发态建议暴露：
+开发原型暴露：
 
 ```js
-window.__KONNI_GAZE_DEBUG__ = {
-  mode: 'sprite',
-  directionIndex: 0,
-  direction: 'center',
-  angle: 0,
-  inDeadZone: true
-};
+window.__KONNI_PUPPET_DEBUG__
 ```
 
-Playwright 不只依赖截图猜状态，而是同时断言 debug state。
+用于测试读取 target/current/render offset，而不是只靠截图猜状态。
 
-## 9. 第一阶段视觉验收标准
+## 8. 正式首页策略
 
-必须全部满足后才进入 17 状态：
+在用户批准独立 Puppet Lab 之前：
 
-- 帽子、头发、脸型在九个方向截图中逐像素/视觉上完全不动；
-- 不再出现当前连续实验中的矩形眼眶感；
-- 眼睛仍然像原角色的一部分，而不是新贴上去的组件；
-- 上下左右极限位置不穿帮；
-- 鼠标绕角色一圈时方向变化可读且不闪烁；
-- 用户明确批准该眼睛风格。
+- 正式首页 Hero 暂时保持静态 idle/sleep；
+- 旧 `.pixel-eye-glint` 运行时代码删除；
+- 白发水手帽 Puppet 仅存在于独立实验页，不提前替换 Hero；
+- 不并行维护第二套 gaze 技术。
 
-## 10. 与最终美术的衔接
+用户批准白发角色的眼睛轮廓、极限遮挡和鼠标跟随效果后，再把同一套 PNG 分层素材接入 Hero；接入完成后再删除 `public/avatar-head/` 的旧 idle/sleep 资产。
 
-当前棕发宽檐帽头像仅用于技术验证。
+## 9. 美术优化边界
 
-正式生产接入前需要最终人物素材：
+眼球追踪完成后，页面的美术优化继续围绕：魔法、精灵、炼金、像素、古典 RPG / 魔法工坊。
 
-- 白发；
-- 水手帽；
-- 不要星星、魔法书等额外装饰；
-- 人物脸与头部固定；
-- 眼睛风格沿用用户已选中的方案；
-- 最好直接提供/制作可动画分层：`face_back`、`eyes`、`face_front`。
+角色交互应作为页面世界的一部分，不添加大量无关动态效果。后续优先考虑：
 
-如果最终人物眼睛开口比当前 128×128 临时头像更大，则 17 状态会更有价值；如果仍然只有 3×4 左右的逻辑像素空间，则应优先保持 9 状态，而不是为了“17”强行制造重复帧。
+- 克制的像素边框；
+- 炼金药瓶/小型道具；
+- 符文、魔法阵的低密度装饰；
+- 植物、蘑菇、灯笼等小型场景物；
+- 与角色视线/鼠标交互相呼应的少量 hover 反馈。
 
-## 11. 非目标
+这些不进入当前眼球原型范围。
 
-本阶段不做：
+## 10. 当前实施顺序
 
-- 头部转动；
-- 整张脸九方向切图；
-- 呼吸动画；
-- 大量粒子、星星、魔法书装饰；
-- Live2D/Spine 重构；
-- 首页其他组件重构；
-- H2 Banner 或其他页面美术工作。
-
-## 12. 实施顺序
-
-1. 保留当前连续 eye-follow lab 作为基线。
-2. 从当前 idle 头像精确确定左右眼开口和锚点。
-3. 制作 9 状态 eye-only 原型素材。
-4. 新建独立 sprite lab。
-5. 加入 dead zone + atan2 + hysteresis。
-6. 编写 Playwright 八方向与圆轨迹测试。
-7. 生成预览截图并由用户视觉审批。
-8. 审批通过后，再决定是否升级为 17 状态。
-9. 17 状态确认后，迁移到最终白发水手帽角色。
-10. 最后才接入正式首页 Hero。
+1. 清理旧 eye-follow、棕发 Puppet、历史预览、未使用 starter 组件和构建产物。
+2. 保留首页真实依赖与构建配置，不在清理阶段重做首页。
+3. 将白发水手帽人物固定为 `256×256` PNG 分层素材：`face-back / iris-left / iris-right / face-front`。
+4. `avatar-puppet-lab.html` 只加载这一套白发素材。
+5. Playwright 验证 PNG 加载、中心、八方向、圆周轨迹、图层顺序和固定人物层。
+6. 人工检查四个极限方向的虹膜轮廓与前景遮挡；必要时只调整运动范围或 iris 美术。
+7. 用户批准后再把 Puppet 接入正式首页 Hero。
+8. Hero 迁移完成后删除旧 `public/avatar-head/` idle/sleep 资产。

@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Konni White Sailor Eye Lab</title>
+<link rel="icon" href="data:," />
+<style>
+  :root{color-scheme:dark;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+  *{box-sizing:border-box}
+  html,body{width:100%;height:100%;margin:0;overflow:hidden}
+  body{display:grid;place-items:center;background:#10141b;color:#dfe7f3;user-select:none}
+  .lab{display:grid;gap:22px;justify-items:center}
+  .avatar-wrap{position:relative;width:560px;height:560px;display:grid;place-items:center;border:1px solid #2a3342;border-radius:28px;background:#151b24;overflow:hidden}
+  .stage{position:relative;width:256px;height:256px;transform:scale(1.72);transform-origin:center;image-rendering:pixelated}
+  .layer{position:absolute;inset:0;width:256px;height:256px;image-rendering:pixelated;pointer-events:none}
+  .face-back{z-index:1}
+  .iris{z-index:2;will-change:transform;transform:translate(var(--eye-x,0px),var(--eye-y,0px))}
+  .face-front{z-index:3}
+  .hud{display:grid;gap:5px;text-align:center;font-size:13px;line-height:1.45;color:#9fb0c8}
+  .hud strong{color:#fff}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#67d391;margin-right:7px}
+  .cross{position:fixed;width:10px;height:10px;border:1px solid #7c8da8;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%);opacity:.42}
+</style>
+</head>
+<body>
+<div class="lab">
+  <div class="avatar-wrap" id="avatarWrap">
+    <div class="stage" id="stage" style="--eye-x:0px;--eye-y:0px">
+      <img class="layer face-back" id="faceBack" src="/avatar-white-sailor/layered/face-back.png" alt="Konni" />
+      <img class="layer iris iris-left" id="irisLeft" src="/avatar-white-sailor/layered/iris-left.png" alt="" />
+      <img class="layer iris iris-right" id="irisRight" src="/avatar-white-sailor/layered/iris-right.png" alt="" />
+      <img class="layer face-front" id="faceFront" src="/avatar-white-sailor/layered/face-front.png" alt="" />
+    </div>
+  </div>
+  <div class="hud">
+    <div><span class="dot"></span><strong>White Sailor Puppet · fixed face / moving irises / fixed eyelids</strong></div>
+    <div>pointer → gaze vector → integer source-pixel iris → face-front occlusion</div>
+    <div>target <span id="target">0.00, 0.00</span> · render <span id="render">0, 0</span> px</div>
+  </div>
+</div>
+<div class="cross" id="cross"></div>
+<script>
+(()=>{
+  const wrap=document.getElementById('avatarWrap');
+  const stage=document.getElementById('stage');
+  const targetOut=document.getElementById('target');
+  const renderOut=document.getElementById('render');
+  const cross=document.getElementById('cross');
+
+  const MAX_X=10;
+  const MAX_Y=6;
+  const DEAD_ZONE=28;
+  const SATURATION_X=330;
+  const SATURATION_Y=260;
+  const FOLLOW=0.20;
+
+  let targetX=0,targetY=0,currentX=0,currentY=0,renderX=0,renderY=0;
+  let lastPointer={x:innerWidth/2,y:innerHeight/2};
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+
+  function compute(clientX,clientY){
+    const r=wrap.getBoundingClientRect();
+    const cx=r.left+r.width/2;
+    const cy=r.top+r.height/2;
+    const dx=clientX-cx;
+    const dy=clientY-cy;
+    const distance=Math.hypot(dx,dy);
+    if(distance<=DEAD_ZONE) return {x:0,y:0,inDeadZone:true};
+
+    const excess=distance-DEAD_ZONE;
+    const ux=dx/distance;
+    const uy=dy/distance;
+    let x=clamp((ux*excess)/SATURATION_X,-1,1)*MAX_X;
+    let y=clamp((uy*excess)/SATURATION_Y,-1,1)*MAX_Y;
+    const q=(x*x)/(MAX_X*MAX_X)+(y*y)/(MAX_Y*MAX_Y);
+    if(q>1){const s=1/Math.sqrt(q);x*=s;y*=s;}
+    return {x,y,inDeadZone:false};
+  }
+
+  function aim(clientX,clientY){
+    lastPointer={x:clientX,y:clientY};
+    const p=compute(clientX,clientY);
+    targetX=p.x; targetY=p.y;
+    targetOut.textContent=`${targetX.toFixed(2)}, ${targetY.toFixed(2)}`;
+    cross.style.left=`${clientX}px`; cross.style.top=`${clientY}px`;
+    return p;
+  }
+
+  function tick(){
+    currentX+=(targetX-currentX)*FOLLOW;
+    currentY+=(targetY-currentY)*FOLLOW;
+    renderX=Math.round(currentX);
+    renderY=Math.round(currentY);
+    stage.style.setProperty('--eye-x',`${renderX}px`);
+    stage.style.setProperty('--eye-y',`${renderY}px`);
+    stage.dataset.eyeX=String(renderX);
+    stage.dataset.eyeY=String(renderY);
+    renderOut.textContent=`${renderX}, ${renderY}`;
+    requestAnimationFrame(tick);
+  }
+
+  addEventListener('pointermove',e=>aim(e.clientX,e.clientY),{passive:true});
+  const initial=wrap.getBoundingClientRect();
+  aim(initial.left+initial.width/2,initial.top+initial.height/2);
+  tick();
+
+  window.__KONNI_PUPPET_DEBUG__={
+    mode:'white-sailor-layered-puppet',
+    compute, aim,
+    getState:()=>({targetX,targetY,currentX,currentY,renderX,renderY,lastPointer}),
+    limits:{x:MAX_X,y:MAX_Y,deadZone:DEAD_ZONE},
+    layers:()=>({
+      back:{src:document.getElementById('faceBack').getAttribute('src'),transform:getComputedStyle(document.getElementById('faceBack')).transform,z:getComputedStyle(document.getElementById('faceBack')).zIndex},
+      front:{src:document.getElementById('faceFront').getAttribute('src'),transform:getComputedStyle(document.getElementById('faceFront')).transform,z:getComputedStyle(document.getElementById('faceFront')).zIndex},
+      irises:[...document.querySelectorAll('.iris')].map(el=>({src:el.getAttribute('src'),transform:getComputedStyle(el).transform,z:getComputedStyle(el).zIndex}))
+    })
+  };
+})();
+</script>
+</body>
+</html>

@@ -35,43 +35,18 @@ const navItems = [
 
 const week = ["一", "二", "三", "四", "五", "六", "日"];
 
-type AvatarPose = "idle" | "wave" | "happy" | "thinking" | "sleepy" | "sleep" | "wake";
+type AvatarPose = "idle" | "sleep";
 
 const avatarFrames: Record<AvatarPose, string> = {
   idle: "/avatar-head/konni-head-idle.png",
-  wave: "/avatar-head/konni-head-idle.png",
-  happy: "/avatar-head/konni-head-idle.png",
-  thinking: "/avatar-head/konni-head-idle.png",
-  sleepy: "/avatar-head/konni-head-sleepy.png",
   sleep: "/avatar-head/konni-head-sleep.png",
-  wake: "/avatar-head/konni-head-idle.png",
 };
 
 function KonniSprite({ pose }: { pose: AvatarPose }) {
-  const canTrackEyes = pose === "idle" || pose === "wave" || pose === "thinking" || pose === "wake";
-
   return (
     <span className={`konni-sprite-stage is-${pose}`} aria-hidden="true">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className="konni-sprite konni-main-frame" src={avatarFrames[pose]} alt="" />
-      {pose === "wave" ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img className="konni-sprite konni-wave-hand" src="/avatar-head/konni-head-wave-hand.png" alt="" />
-      ) : null}
-      {pose === "thinking" ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img className="konni-sprite konni-thinking-hand" src="/avatar-head/konni-head-thinking-hand.png" alt="" />
-      ) : null}
-      {pose === "happy" ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img className="konni-sprite konni-happy-face" src="/avatar-head/konni-head-happy-face.png" alt="" />
-      ) : null}
-      {canTrackEyes ? (
-        <>
-          <span className="pixel-eye-glint pixel-eye-glint-left" />
-          <span className="pixel-eye-glint pixel-eye-glint-right" />
-        </>
-      ) : null}
     </span>
   );
 }
@@ -117,29 +92,10 @@ export default function Home() {
   const [selectedDay, setSelectedDay] = useState(today.getDate());
   const [toast, setToast] = useState("");
   const [scale, setScale] = useState(1);
-  const [avatarHappy, setAvatarHappy] = useState(false);
-  const [avatarHover, setAvatarHover] = useState(false);
-  const [avatarWave, setAvatarWave] = useState(false);
-  const [avatarThinking, setAvatarThinking] = useState(false);
-  const [avatarSleepy, setAvatarSleepy] = useState(false);
   const [avatarSleep, setAvatarSleep] = useState(false);
-  const [avatarWaking, setAvatarWaking] = useState(false);
   const avatarRef = useRef<HTMLButtonElement | null>(null);
-  const avatarRestRef = useRef<"awake" | "sleepy" | "sleep">("awake");
   const days = useMemo(() => buildMonth(month.getFullYear(), month.getMonth()), [month]);
-  const avatarPose: AvatarPose = avatarHappy
-    ? "happy"
-    : avatarWave
-      ? "wave"
-      : avatarWaking
-        ? "wake"
-        : avatarSleep
-          ? "sleep"
-          : avatarSleepy
-            ? "sleepy"
-            : avatarThinking
-              ? "thinking"
-              : "idle";
+  const avatarPose: AvatarPose = avatarSleep ? "sleep" : "idle";
   const calendarTitle = month.getFullYear() === today.getFullYear() && month.getMonth() === today.getMonth()
     ? dateLabel
     : `${month.getFullYear()}/${month.getMonth() + 1}`;
@@ -158,78 +114,28 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!avatarHover || avatarWave || avatarHappy) return;
-    const timer = window.setTimeout(() => setAvatarThinking(true), 1800);
-    return () => window.clearTimeout(timer);
-  }, [avatarHappy, avatarHover, avatarWave]);
-
-  useEffect(() => {
-    let sleepyTimer = 0;
     let sleepTimer = 0;
-    let wakeTimer = 0;
+    const sleepAfterMs = 15000;
 
-    const clearRestTimers = () => {
-      window.clearTimeout(sleepyTimer);
+    const scheduleSleep = () => {
       window.clearTimeout(sleepTimer);
+      sleepTimer = window.setTimeout(() => setAvatarSleep(true), sleepAfterMs);
     };
 
-    const scheduleRest = () => {
-      clearRestTimers();
-      sleepyTimer = window.setTimeout(() => {
-        avatarRestRef.current = "sleepy";
-        setAvatarWave(false);
-        setAvatarThinking(false);
-        setAvatarSleep(false);
-        setAvatarSleepy(true);
-      }, 8500);
-      sleepTimer = window.setTimeout(() => {
-        avatarRestRef.current = "sleep";
-        setAvatarWave(false);
-        setAvatarThinking(false);
-        setAvatarSleepy(false);
-        setAvatarSleep(true);
-      }, 12000);
-    };
-
-    const wake = () => {
-      const shouldAnimateWake = avatarRestRef.current !== "awake";
-      avatarRestRef.current = "awake";
-      setAvatarSleepy(false);
+    // The legacy CSS eye-offset tracker has been retired. Until the layered
+    // puppet prototype is visually approved, the formal Hero keeps a static
+    // idle face and only uses pointer activity to wake/reset sleep.
+    const handlePointerActivity = () => {
       setAvatarSleep(false);
-      if (shouldAnimateWake) {
-        window.clearTimeout(wakeTimer);
-        setAvatarWaking(true);
-        wakeTimer = window.setTimeout(() => setAvatarWaking(false), 650);
-      }
-      scheduleRest();
+      scheduleSleep();
     };
 
-    const followPointer = (event: PointerEvent) => {
-      wake();
-
-      const avatar = avatarRef.current;
-      const box = avatar?.getBoundingClientRect();
-      if (avatar && box) {
-        const dx = event.clientX - (box.left + box.width / 2);
-        const dy = event.clientY - (box.top + box.height / 2);
-        const eyeX = dx < -36 ? -2 : dx > 36 ? 2 : 0;
-        const eyeY = dy < -30 ? -2 : dy > 30 ? 2 : 0;
-        avatar.style.setProperty("--eye-x", `${eyeX}px`);
-        avatar.style.setProperty("--eye-y", `${eyeY}px`);
-      }
-    };
-
-    window.addEventListener("pointermove", followPointer, { passive: true });
-    window.addEventListener("pointerdown", wake, { passive: true });
-    window.addEventListener("keydown", wake);
-    scheduleRest();
+    window.addEventListener("pointermove", handlePointerActivity, { passive: true });
+    scheduleSleep();
 
     return () => {
-      clearRestTimers();
-      window.clearTimeout(wakeTimer);
-      window.removeEventListener("pointermove", followPointer);
-      window.removeEventListener("pointerdown", wake);
-      window.removeEventListener("keydown", wake);
+      window.clearTimeout(sleepTimer);
+      window.removeEventListener("pointermove", handlePointerActivity);
     };
   }, []);
 
@@ -276,34 +182,15 @@ export default function Home() {
         </section>
 
         <section className="card hero-panel enter-card" style={{ "--delay": "120ms" } as CSSProperties} id="top">
-          <div className={`avatar-status${avatarHover ? " is-hover" : ""}${avatarHappy ? " is-happy" : ""}`} aria-live="polite">
+          <div className="avatar-status" aria-live="polite">
             {night ? <Moon aria-hidden="true" /> : <Sun aria-hidden="true" />}
-            <span>{avatarHappy ? "Yay!" : avatarWave ? "Hi there!" : avatarWaking ? "Awake!" : avatarSleep ? "Zzz..." : avatarSleepy ? "...sleepy" : avatarThinking ? "Hmm..." : avatarHover ? "I see you" : night ? "Night mode" : "Konni online"}</span>
+            <span>{night ? "Night mode" : "Konni online"}</span>
           </div>
           <button
             ref={avatarRef}
-            className={`hero-avatar${avatarHappy ? " is-happy" : ""}`}
+            className="hero-avatar"
             type="button"
-            aria-label="Konni 像素精灵，悬停会挥手并观察鼠标，点击会开心"
-            onMouseEnter={() => {
-              setAvatarSleep(false);
-              setAvatarThinking(false);
-              setAvatarHover(true);
-              setAvatarWave(true);
-              window.setTimeout(() => setAvatarWave(false), 760);
-            }}
-
-            onMouseLeave={() => {
-              setAvatarHover(false);
-              setAvatarWave(false);
-              setAvatarThinking(false);
-            }}
-            onClick={() => {
-              setAvatarSleep(false);
-              setAvatarThinking(false);
-              setAvatarHappy(true);
-              window.setTimeout(() => setAvatarHappy(false), 900);
-            }}
+            aria-label="Konni 像素精灵，会看向鼠标并在长时间无鼠标移动时睡觉"
           >
             <KonniSprite pose={avatarPose} />
           </button>
@@ -386,8 +273,8 @@ export default function Home() {
         ><Heart /></button>
 
         <div className="theme-toggle enter-card" style={{ "--delay": "40ms" } as CSSProperties} aria-label="主题切换">
-          <button aria-label="浅色模式" className={!night ? "active" : ""} onClick={() => { setAvatarSleep(false); setAvatarThinking(false); setNight(false); }}><Sun /></button>
-          <button aria-label="深色模式" className={night ? "active" : ""} onClick={() => { setAvatarSleep(false); setAvatarThinking(false); setNight(true); }}><Moon /></button>
+          <button aria-label="浅色模式" className={!night ? "active" : ""} onClick={() => { setAvatarSleep(false); setNight(false); }}><Sun /></button>
+          <button aria-label="深色模式" className={night ? "active" : ""} onClick={() => { setAvatarSleep(false); setNight(true); }}><Moon /></button>
         </div>
         <button className="settings-button enter-card" style={{ "--delay": "50ms" } as CSSProperties} aria-label="设置" onClick={() => notify("设置面板尚未开放")}><Settings /></button>
       </div>
